@@ -76,7 +76,7 @@ class Main(QWidget):
                         temp_array[y][x] = 0
                     elif alive > 3 and self.array_now[y][x] == 1:
                         temp_array[y][x] = 0
-                    elif alive == 0 and self.array_now[y][x] == 0:
+                    elif alive == 3 and self.array_now[y][x] == 0:
                         temp_array[y][x] = 1
             self.array_next = temp_array.copy()
 
