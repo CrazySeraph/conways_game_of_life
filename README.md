@@ -1,8 +1,63 @@
-<style>
-    p {
-        font-family: comic-sans;
-    }
-</style>
-<h1>conways game of life</h1>
-<h2>Conways game of life by CrazySeraph using, pygame, PyQt6 and numpy</h2>
-<p>dont know why its all funky like that when unpaused, i probably fucked the logic somewhere, pls help XD</p>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Conways game of Life - Kiste Edition</title>
+	<style>
+		body {
+			background-color: #1a1a1a;
+			font-family: Arial, sans-serif;
+			color: white;
+		}
+
+		h1 {
+			font-size: 36px;
+			margin-top: 50px;
+			margin-bottom: 30px;
+			text-align: center;
+			color: #f7c08a;
+		}
+
+		p {
+			font-size: 18px;
+			line-height: 1.5;
+			margin-bottom: 20px;
+			text-align: justify;
+		}
+
+		.container {
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 0 20px;
+		}
+
+		.btn {
+			display: inline-block;
+			padding: 10px 20px;
+			background-color: #f7c08a;
+			color: black;
+			font-size: 20px;
+			border-radius: 5px;
+			text-decoration: none;
+			margin-top: 20px;
+			transition: all 0.3s ease-in-out;
+		}
+
+		.btn:hover {
+			background-color: #ffcd62;
+			color: black;
+			transform: scale(1.05);
+		}
+
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h1>Conways game of Life - Kiste Edition</h1>
+		<p>Conway's Game of Life is a cellular automaton invented by mathematician John Conway in 1970. It is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. The game is a classic example of emergence, where complex patterns arise from simple rules.</p>
+		<p>This implementation of the game uses Pygame and Numpy libraries to create the simulation, and PyQt6 library to create the UI. The game board is a 100x100 grid, where each cell can be either alive or dead. The game starts with a random configuration of cells, and the user can interact with the board by clicking on the cells to toggle their state, or using the space bar to start/pause the simulation.</p>
+		<a href="#" class="btn">Play the Game</a>
+	</div>
+</body>
+</html>
