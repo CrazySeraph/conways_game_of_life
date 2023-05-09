@@ -1,7 +1,7 @@
-<h1>Conways game of Life - Kiste Edition</h1>
+# Conways Spiel des Lebens - Kiste Edition
 
-<p>Conway's Game of Life is a cellular automaton invented by mathematician John Conway in 1970. It is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. The game is a classic example of emergence, where complex patterns arise from simple rules.</p>
+Conways Spiel des Lebens ist ein von dem Mathematiker **John Conway** im Jahr 1970 erfundener zellulärer Automat. Es ist ein **Null-Spieler-Spiel**, was bedeutet, dass seine Entwicklung durch seinen Anfangszustand bestimmt wird und keine weitere Eingabe erfordert. Das Spiel ist ein klassisches Beispiel für **Emergenz**, bei der komplexe Muster aus einfachen Regeln entstehen.
 
-<p>This implementation of the game uses Pygame and Numpy libraries to create the simulation, and PyQt6 library to create the UI. The game board is a 100x100 grid, where each cell can be either alive or dead. The game starts with a random configuration of cells, and the user can interact with the board by clicking on the cells to toggle their state, or using the space bar to start/pause the simulation.</p>
+Diese Implementierung des Spiels verwendet die Bibliotheken **Pygame** und **Numpy** zur Erstellung der Simulation und die Bibliothek **PyQt6** zur Erstellung der Benutzeroberfläche. Das Spielbrett ist ein **100x100 Raster**, in dem jede Zelle entweder lebendig oder tot sein kann. Das Spiel beginnt mit einer zufälligen Konfiguration von Zellen und der Benutzer kann mit dem Brett interagieren, indem er auf die Zellen klickt, um ihren Zustand umzuschalten oder die Leertaste verwendet, um die Simulation zu starten/anhalten.
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/Gospers_glider_gun.gif" width="300">
+![Gosper's Glider Gun](https://upload.wikimedia.org/wikipedia/commons/e/e5/Gospers_glider_gun.gif)
