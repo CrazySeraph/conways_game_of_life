@@ -1,4 +1,4 @@
-###Conways game of Life - Kiste Edition
+<h1>Conways game of Life - Kiste Edition</h1>
 
 <p>Conway's Game of Life is a cellular automaton invented by mathematician John Conway in 1970. It is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. The game is a classic example of emergence, where complex patterns arise from simple rules.</p>
 
