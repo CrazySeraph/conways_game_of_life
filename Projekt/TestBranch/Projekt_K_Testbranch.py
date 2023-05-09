@@ -24,7 +24,7 @@ class Main(QWidget):
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
         self.speed = 10
-        self.pause_button = QPushButton('\u23E9', self)
+        self.pause_button = QPushButton('▶️', self)
         self.pause_button.setGeometry(20, 20, self.width() - 40, 60)
         self.pause_button.clicked.connect(self.on_pause_click)
         self.left_button = QPushButton('', self)
@@ -65,10 +65,10 @@ class Main(QWidget):
                     if event.key == pygame.K_SPACE:
                         if self.active:
                             self.active = False
-                            self.pause_button.setText('\u23E9')
+                            self.pause_button.setText('▶️')
                         elif not self.active:
                             self.active = True
-                            self.pause_button.setText('\u23F8')
+                            self.pause_button.setText('⏸️')
             self.screen.fill(pygame.Color('black'))
             self.draw_grid()
             self.Game_of_Life_Logic()
@@ -103,10 +103,10 @@ class Main(QWidget):
     def on_pause_click(self):
         if self.active:
             self.active = False
-            self.pause_button.setText('\u23E9')
+            self.pause_button.setText('▶️')
         elif not self.active:
             self.active = True
-            self.pause_button.setText('\u23F8')
+            self.pause_button.setText('⏸️')
 
     def on_slider_change(self, value):
         self.speed = value
