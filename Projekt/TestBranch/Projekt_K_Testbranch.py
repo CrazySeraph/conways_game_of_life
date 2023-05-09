@@ -4,6 +4,7 @@ import pygame
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton,\
                             QSlider
 from PyQt6.QtCore import Qt
+from PyQt6 import QtGui
 
 class Main(QWidget):
     def __init__(self):
@@ -23,9 +24,17 @@ class Main(QWidget):
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
         self.speed = 10
-        self.pause_button = QPushButton('\u23F8', self)
+        self.pause_button = QPushButton('\u23E9', self)
         self.pause_button.setGeometry(20, 20, self.width() - 40, 60)
         self.pause_button.clicked.connect(self.on_pause_click)
+        self.left_button = QPushButton('', self)
+        self.left_button.setGeometry(20, 100, 60, 60)
+        self.left_button.setText('\u23EA')
+        self.left_button.clicked.connect(self.on_left_click)
+        self.right_button = QPushButton('', self)
+        self.right_button.setGeometry(self.width() - 80, 100, 60, 60)
+        self.right_button.setText('\u23E9')
+        self.right_button.clicked.connect(self.on_right_click)
         self.slider = QSlider()
         self.slider.setOrientation(Qt.Orientation.Horizontal)
         self.slider.setRange(5, 50)
@@ -56,10 +65,10 @@ class Main(QWidget):
                     if event.key == pygame.K_SPACE:
                         if self.active:
                             self.active = False
-                            print('Pause')
+                            self.pause_button.setText('\u23E9')
                         elif not self.active:
                             self.active = True
-                            print('Start')
+                            self.pause_button.setText('\u23F8')
             self.screen.fill(pygame.Color('black'))
             self.draw_grid()
             self.Game_of_Life_Logic()
@@ -94,13 +103,21 @@ class Main(QWidget):
     def on_pause_click(self):
         if self.active:
             self.active = False
-            print('Pause')
+            self.pause_button.setText('\u23E9')
         elif not self.active:
             self.active = True
-            print('Start')
+            self.pause_button.setText('\u23F8')
 
     def on_slider_change(self, value):
         self.speed = value
+
+    def on_left_click(self):
+        value = self.slider.value() - 1
+        self.slider.setValue(value)
+
+    def on_right_click(self):
+        value = self.slider.value() + 1
+        self.slider.setValue(value)
     def closeEvent(self, event):
         pygame.quit()
         sys.exit()
