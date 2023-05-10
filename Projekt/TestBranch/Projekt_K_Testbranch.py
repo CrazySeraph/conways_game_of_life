@@ -23,13 +23,13 @@ class Main(QWidget):
 
         # Simulationsstatus und zellengröße
         self.active = False
-        self.square_size = 8
+        self.square_size = 10
 
         # Farben für die Zellen
         self.rect_col, self.fill_col = pygame.Color('grey'), pygame.Color('white')
 
         # Aufsetzung des Pygame Fensters
-        self.screen_width, self.screen_height = 800, 800
+        self.screen_width, self.screen_height = 1000, 1000
         pygame.init()
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
