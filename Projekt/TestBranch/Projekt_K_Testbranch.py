@@ -4,7 +4,7 @@ import pygame
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, \
     QSlider
-
+import time
 
 class Main(QWidget):
     def __init__(self):
@@ -106,7 +106,7 @@ class Main(QWidget):
                         temp_array[y][x] = 0
                     elif alive == 3 and self.array_now[y][x] == 0:
                         temp_array[y][x] = 1
-            self.array_now = temp_array.copy()
+            self.array_now = temp_array
 
     def on_pause_click(self):
         if self.active:
