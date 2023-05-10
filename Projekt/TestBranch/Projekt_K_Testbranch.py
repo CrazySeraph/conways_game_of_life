@@ -4,7 +4,6 @@ import pygame
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton,\
                             QSlider
 from PyQt6.QtCore import Qt
-from PyQt6 import QtGui
 
 class Main(QWidget):
     def __init__(self):
@@ -59,16 +58,11 @@ class Main(QWidget):
                         self.array_now[row][col] = 1
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_KP_PLUS:
-                        print('+')
+                        self.on_right_click()
                     if event.key == pygame.K_KP_MINUS:
-                        print('-')
+                        self.on_left_click()
                     if event.key == pygame.K_SPACE:
-                        if self.active:
-                            self.active = False
-                            self.pause_button.setText('▶️')
-                        elif not self.active:
-                            self.active = True
-                            self.pause_button.setText('⏸️')
+                        self.on_pause_click()
             self.screen.fill(pygame.Color('black'))
             self.draw_grid()
             self.Game_of_Life_Logic()
