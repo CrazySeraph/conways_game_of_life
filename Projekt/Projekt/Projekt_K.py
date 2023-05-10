@@ -1,28 +1,42 @@
 import sys
 import numpy as np
 import pygame
-from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton,\
-                            QSlider
 from PyQt6.QtCore import Qt
-from PyQt6 import QtGui
+from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, \
+    QSlider
+
 
 class Main(QWidget):
     def __init__(self):
         super().__init__()
 
+        # Fenster Eigenschaften
         self.setGeometry(100, 100, 200, 400)
         self.setWindowTitle('Game of Life Steuerung')
+
+        # Frame erstellen
         self.frame = QFrame(self)
         self.frame.setGeometry(10, 10, 400, 400)
-        self.array_now, self.array_next = np.zeros((100, 100), dtype=int), np.zeros((100, 100), dtype=int)
+
+        # Array für Game of Life
+        self.array_now = np.zeros((100, 100), dtype=int)
+
+        # Simulationsstatus und zellengröße
         self.active = False
         self.square_size = 8
+
+        # Farben für die Zellen
         self.rect_col, self.fill_col = pygame.Color('grey'), pygame.Color('white')
+
+        # Aufsetzung des Pygame Fensters
         self.screen_width, self.screen_height = 800, 800
         pygame.init()
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
+
+        # Die Simulationsgeschwindgkeit wird festgelegt
+        # PyQt6 UI Elemente
         self.speed = 10
         self.pause_button = QPushButton('▶️', self)
         self.pause_button.setGeometry(20, 20, self.width() - 40, 60)
@@ -37,7 +51,7 @@ class Main(QWidget):
         self.right_button.clicked.connect(self.on_right_click)
         self.slider = QSlider()
         self.slider.setOrientation(Qt.Orientation.Horizontal)
-        self.slider.setRange(5, 50)
+        self.slider.setRange(1, 20)
         self.slider.setValue(10)
         self.slider.valueChanged.connect(self.on_slider_change)
         self.slider.setParent(self)
@@ -59,20 +73,14 @@ class Main(QWidget):
                         self.array_now[row][col] = 1
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_KP_PLUS:
-                        print('+')
+                        self.on_right_click()
                     if event.key == pygame.K_KP_MINUS:
-                        print('-')
+                        self.on_left_click()
                     if event.key == pygame.K_SPACE:
-                        if self.active:
-                            self.active = False
-                            self.pause_button.setText('▶️')
-                        elif not self.active:
-                            self.active = True
-                            self.pause_button.setText('⏸️')
+                        self.on_pause_click()
             self.screen.fill(pygame.Color('black'))
             self.draw_grid()
             self.Game_of_Life_Logic()
-            self.array_now = self.array_next
             pygame.display.flip()
             self.clock.tick(self.speed)
 
@@ -98,7 +106,7 @@ class Main(QWidget):
                         temp_array[y][x] = 0
                     elif alive == 3 and self.array_now[y][x] == 0:
                         temp_array[y][x] = 1
-            self.array_next = temp_array.copy()
+            self.array_now = temp_array.copy()
 
     def on_pause_click(self):
         if self.active:
@@ -112,15 +120,23 @@ class Main(QWidget):
         self.speed = value
 
     def on_left_click(self):
-        value = self.slider.value() - 1
-        self.slider.setValue(value)
+        if self.slider.value() == 1:
+            print('Verlangsamung nicht möglich!')
+        else:
+            value = self.slider.value() - 1
+            self.slider.setValue(value)
 
     def on_right_click(self):
-        value = self.slider.value() + 1
-        self.slider.setValue(value)
+        if self.slider.value() == 20:
+            print('Beschleunigung nicht möglich!')
+        else:
+            value = self.slider.value() + 1
+            self.slider.setValue(value)
+
     def closeEvent(self, event):
         pygame.quit()
         sys.exit()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
