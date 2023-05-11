@@ -2,8 +2,10 @@ import sys
 import numpy as np
 import pygame
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QLineEdit, QHBoxLayout, QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QLineEdit, QHBoxLayout, QVBoxLayout, \
+    QLabel, QSpacerItem, QSizePolicy
 from scipy.signal import convolve2d
+
 
 ########################################################################################################################
 ##  PROJEKT_K_SCHNELL -- TESTBRANCH
@@ -20,7 +22,8 @@ class Main(QWidget):
         self.frame.setGeometry(10, 10, 400, 400)
 
         self.active = False
-        self.rect_col, self.fill_col = pygame.Color('grey'), pygame.Color('white')
+        self.background_col, self.rect_col, self.fill_col = pygame.Color("#E8E8E8"), pygame.Color(
+            '#AAAAAA'), pygame.Color('#1E90FF')
         self.screen_width, self.screen_height = 1000, 1000
         self.array_now = np.zeros((100, 100), dtype=int)
         self.square_size = int(self.screen_width / len(self.array_now))
@@ -109,17 +112,30 @@ class Main(QWidget):
                 border-radius: 20px;
             }
         ''')
+        self.slider_label = QLabel(self)
+        self.slider_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.slider_label.setText(str(f"Ticks pro Sekunde: {self.slider.value()}"))
+        self.slider_label.setStyleSheet('''
+            QLabel {
+                font-size: 20px;
+                color: #808080;
+                margin-top: 10px;
+            }
+        ''')
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.addWidget(self.pause_button)
-        main_layout.addSpacing(40)
+        main_layout.addSpacing(20)
         main_layout.addWidget(self.slider)
+        main_layout.addWidget(self.slider_label)
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.left_button)
         button_layout.addWidget(self.right_button)
         button_layout.setContentsMargins(0, 20, 0, 0)
+        spacer = QSpacerItem(1, 200, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        button_layout.addItem(spacer)
 
         main_layout.addLayout(button_layout)
 
@@ -143,7 +159,7 @@ class Main(QWidget):
                         self.on_left_click()
                     if event.key == pygame.K_SPACE:
                         self.on_pause_click()
-            self.screen.fill(pygame.Color('black'))
+            self.screen.fill(pygame.Color(self.background_col))
             self.draw_grid()
             self.Game_of_Life_Logic()
             pygame.display.flip()
@@ -170,10 +186,19 @@ class Main(QWidget):
 
     def on_pause_click(self):
         self.active = not self.active
-        self.pause_button.setText('⏸️' if self.active else '▶️')
+        self.pause_button.setText('Pause' if self.active else 'Start')
+        pause_style = self.pause_button.styleSheet()
+        if self.pause_button.text() == 'Pause':
+            pause_style = pause_style.replace("background-color: #50C878", "background-color: #F08080")
+            pause_style = pause_style.replace("background-color: #3CB371", "background-color: #CD5C5C")
+        else:
+            pause_style = pause_style.replace("background-color: #F08080", "background-color: #50C878")
+            pause_style = pause_style.replace("background-color: #CD5C5C", "background-color: #3CB371")
+        self.pause_button.setStyleSheet(pause_style)
 
     def on_slider_change(self, value):
         self.speed = value
+        self.slider_label.setText(str(f"Ticks pro Sekunde: {self.slider.value()}"))
 
     def on_left_click(self):
         if self.slider.value() > 1:
