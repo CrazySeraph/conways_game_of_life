@@ -1,0 +1,1 @@
+In diesem Ordner sind andere Ideen für Projekte die ich anstatt Conways game of life hätte machen können
