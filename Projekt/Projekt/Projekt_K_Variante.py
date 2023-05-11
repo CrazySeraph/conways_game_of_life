@@ -4,7 +4,6 @@ import pygame
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, \
     QSlider
-from scipy.signal import convolve2d
 
 
 class Main(QWidget):
@@ -22,7 +21,7 @@ class Main(QWidget):
         # Array für Game of Life
         self.array_now = np.zeros((100, 100), dtype=int)
 
-        # Simulationsstatus und Zellengröße
+        # Simulationsstatus und zellengröße
         self.active = False
         self.square_size = 10
 
@@ -36,23 +35,26 @@ class Main(QWidget):
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
 
-        # Die Simulationsgeschwindigkeit wird festgelegt
+        # Die Simulationsgeschwindgkeit wird festgelegt
         # PyQt6 UI Elemente
         self.speed = 10
-        self.maxslider = 50
         self.pause_button = QPushButton('▶️', self)
         self.pause_button.setGeometry(20, 20, self.width() - 40, 60)
         self.pause_button.clicked.connect(self.on_pause_click)
-        self.left_button = QPushButton('\u23EA', self)
+        self.left_button = QPushButton('', self)
         self.left_button.setGeometry(20, 100, 60, 60)
+        self.left_button.setText('\u23EA')
         self.left_button.clicked.connect(self.on_left_click)
-        self.right_button = QPushButton('\u23E9', self)
+        self.right_button = QPushButton('', self)
         self.right_button.setGeometry(self.width() - 80, 100, 60, 60)
+        self.right_button.setText('\u23E9')
         self.right_button.clicked.connect(self.on_right_click)
-        self.slider = QSlider(Qt.Orientation.Horizontal, self)
-        self.slider.setRange(1, self.maxslider)
-        self.slider.setValue(self.maxslider // 2)
+        self.slider = QSlider()
+        self.slider.setOrientation(Qt.Orientation.Horizontal)
+        self.slider.setRange(1, 20)
+        self.slider.setValue(10)
         self.slider.valueChanged.connect(self.on_slider_change)
+        self.slider.setParent(self)
         self.show()
 
     def run(self):
@@ -65,7 +67,10 @@ class Main(QWidget):
                     mouse_pos = pygame.mouse.get_pos()
                     row = mouse_pos[1] // self.square_size
                     col = mouse_pos[0] // self.square_size
-                    self.array_now[row][col] = 0 if self.array_now[row][col] == 1 else 1
+                    if self.array_now[row][col] == 1:
+                        self.array_now[row][col] = 0
+                    else:
+                        self.array_now[row][col] = 1
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_KP_PLUS:
                         self.on_right_click()
@@ -77,45 +82,53 @@ class Main(QWidget):
             self.draw_grid()
             self.Game_of_Life_Logic()
             pygame.display.flip()
-            self.clock.tick(self.speed)
+            self.clock.tick(100)
 
     def draw_grid(self):
-        length = len(self.array_now)
-        for row in range(length):
-            for col in range(length):
-                rect = pygame.Rect(col * self.square_size, row * self.square_size, self.square_size, self.square_size)
-                pygame.draw.rect(self.screen, self.rect_col, rect, 1)
-                if self.array_now[row][col] == 1:
-                    pygame.draw.rect(self.screen, self.fill_col, rect)
+        rect = pygame.Rect(0, 0, self.square_size, self.square_size)
+        for row, array_row in enumerate(self.array_now):
+            for col, value in enumerate(array_row):
+                rect.topleft = (col * self.square_size, row * self.square_size)
+                pygame.draw.rect(self.screen, self.fill_col if value else self.rect_col, rect)
 
     def Game_of_Life_Logic(self):
-        if self.active:
-            kernel = np.array([[1, 1, 1],
-                               [1, 0, 1],
-                               [1, 1, 1]])
-            convolved = convolve2d(self.array_now, kernel, mode='same')
-            self.array_now = np.where((self.array_now == 1) & ((convolved < 2) | (convolved > 3)), 0, self.array_now)
-            self.array_now = np.where((self.array_now == 1) & ((convolved == 2) | (convolved == 3)), 1, self.array_now)
-            self.array_now = np.where((self.array_now == 0) & (convolved == 3), 1, self.array_now)
+        if not self.active:
+            return
+        temp_array = np.zeros_like(self.array_now)
+        neighbors_count = np.zeros_like(self.array_now)
+        neighbors_count[1:-1, 1:-1] = (
+                self.array_now[:-2, :-2] + self.array_now[:-2, 1:-1] + self.array_now[:-2, 2:] +
+                self.array_now[1:-1, :-2] + self.array_now[1:-1, 2:] +
+                self.array_now[2:, :-2] + self.array_now[2:, 1:-1] + self.array_now[2:, 2:]
+        )
+        temp_array[neighbors_count == 3] = 1
+        temp_array[(neighbors_count == 2) & (self.array_now == 1)] = 1
+        self.array_now = temp_array
 
     def on_pause_click(self):
-        self.active = not self.active
-        self.pause_button.setText('⏸️' if self.active else '▶️')
+        if self.active:
+            self.active = False
+            self.pause_button.setText('▶️')
+        elif not self.active:
+            self.active = True
+            self.pause_button.setText('⏸️')
 
     def on_slider_change(self, value):
         self.speed = value
 
     def on_left_click(self):
-        if self.slider.value() > 1:
-            self.slider.setValue(self.slider.value() - 1)
-        else:
+        if self.slider.value() == 1:
             print('Verlangsamung nicht möglich!')
+        else:
+            value = self.slider.value() - 1
+            self.slider.setValue(value)
 
     def on_right_click(self):
-        if self.slider.value() < self.maxslider:
-            self.slider.setValue(self.slider.value() + 1)
-        else:
+        if self.slider.value() == 20:
             print('Beschleunigung nicht möglich!')
+        else:
+            value = self.slider.value() + 1
+            self.slider.setValue(value)
 
     def closeEvent(self, event):
         pygame.quit()
