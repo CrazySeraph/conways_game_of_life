@@ -2,127 +2,60 @@ import sys
 import numpy as np
 import pygame
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QLineEdit, QHBoxLayout, QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, \
+    QSlider
 from scipy.signal import convolve2d
 
 ########################################################################################################################
-##  PROJEKT_K_SCHNELL -- TESTBRANCH
+##  PROJEKT_K_TESTBRANCH - OLD
 ########################################################################################################################
 
 class Main(QWidget):
     def __init__(self):
         super().__init__()
 
+        # Fenster Eigenschaften
         self.setGeometry(100, 100, 200, 400)
         self.setWindowTitle('Game of Life Steuerung')
 
+        # Frame erstellen
         self.frame = QFrame(self)
         self.frame.setGeometry(10, 10, 400, 400)
 
-        self.active = False
-        self.rect_col, self.fill_col = pygame.Color('grey'), pygame.Color('white')
-        self.screen_width, self.screen_height = 1000, 1000
+        # Array für Game of Life
         self.array_now = np.zeros((100, 100), dtype=int)
-        self.square_size = int(self.screen_width / len(self.array_now))
-        self.speed = 10
+
+        # Simulationsstatus und Zellengröße
+        self.active = False
+        self.square_size = 10
+
+        # Farben für die Zellen
+        self.rect_col, self.fill_col = pygame.Color('grey'), pygame.Color('white')
+
+        # Aufsetzung des Pygame Fensters
+        self.screen_width, self.screen_height = 1000, 1000
         pygame.init()
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
 
-        self.pause_button = QPushButton('Start', self)
-        self.pause_button.clicked.connect(self.on_pause_click)
-        self.pause_button.setStyleSheet('''
-            QPushButton {
-                background-color: #50C878;
-                color: white;
-                border: none;
-                border-radius: 20px;
-                font-size: 30px;
-                padding: 20px;
-            }
-            QPushButton:hover {
-                background-color: #3CB371;
-                color: white;
-            }
-        ''')
-        self.left_button = QPushButton('◀', self)
-        self.left_button.clicked.connect(self.on_left_click)
-        self.left_button.setStyleSheet('''
-            QPushButton {
-                background-color: #F08080;
-                color: white;
-                border: none;
-                border-radius: 20px;
-                font-size: 30px;
-                padding: 20px;
-            }
-            QPushButton:hover {
-                background-color: #CD5C5C;
-                color: white;
-            }
-        ''')
-        self.right_button = QPushButton('▶', self)
-        self.right_button.clicked.connect(self.on_right_click)
-        self.right_button.setStyleSheet('''
-            QPushButton {
-                background-color: #F08080;
-                color: white;
-                border: none;
-                border-radius: 20px;
-                font-size: 30px;
-                padding: 20px;
-            }
-            QPushButton:hover {
-                background-color: #CD5C5C;
-                color: white;
-            }
-        ''')
+        # Die Simulationsgeschwindigkeit wird festgelegt
+        # PyQt6 UI Elemente
+        self.speed = 10
         self.maxslider = 50
+        self.pause_button = QPushButton('▶️', self)
+        self.pause_button.setGeometry(20, 20, self.width() - 40, 60)
+        self.pause_button.clicked.connect(self.on_pause_click)
+        self.left_button = QPushButton('\u23EA', self)
+        self.left_button.setGeometry(20, 100, 60, 60)
+        self.left_button.clicked.connect(self.on_left_click)
+        self.right_button = QPushButton('\u23E9', self)
+        self.right_button.setGeometry(self.width() - 80, 100, 60, 60)
+        self.right_button.clicked.connect(self.on_right_click)
         self.slider = QSlider(Qt.Orientation.Horizontal, self)
         self.slider.setRange(1, self.maxslider)
         self.slider.setValue(self.maxslider // 2)
         self.slider.valueChanged.connect(self.on_slider_change)
-        self.slider.setStyleSheet('''
-            QSlider::groove:horizontal {
-                border: 1px solid #999999;
-                height: 8px;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #B1B1B1, stop:1 #c4c4c4);
-                margin: 2px 0;
-            }
-
-            QSlider::handle:horizontal {
-                background: #50C878;
-                border: none;
-                height: 30px;
-                width: 30px;
-                margin: -10px 0;
-                border-radius: 20px;
-            }
-
-            QSlider::handle:horizontal:hover {
-                background: #3CB371;
-                border: none;
-                height: 30px;
-                width: 30px;
-                margin: -10px 0;
-                border-radius: 20px;
-            }
-        ''')
-
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.addWidget(self.pause_button)
-        main_layout.addSpacing(40)
-        main_layout.addWidget(self.slider)
-
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(self.left_button)
-        button_layout.addWidget(self.right_button)
-        button_layout.setContentsMargins(0, 20, 0, 0)
-
-        main_layout.addLayout(button_layout)
-
         self.show()
 
     def run(self):
