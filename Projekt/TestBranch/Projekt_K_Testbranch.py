@@ -1,14 +1,16 @@
 import sys
+
 import numpy as np
 import pygame
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QLineEdit, QHBoxLayout, QVBoxLayout, \
+from PyQt6.QtGui import QKeyEvent
+from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, \
     QLabel, QSpacerItem, QSizePolicy
 from scipy.signal import convolve2d
 
 
 ########################################################################################################################
-##  PROJEKT_K_SCHNELL -- TESTBRANCH
+#                                             PROJEKT_K -- MAIN                                                        #
 ########################################################################################################################
 
 class Main(QWidget):
@@ -46,38 +48,6 @@ class Main(QWidget):
             }
             QPushButton:hover {
                 background-color: #3CB371;
-                color: white;
-            }
-        ''')
-        self.left_button = QPushButton('◀', self)
-        self.left_button.clicked.connect(self.on_left_click)
-        self.left_button.setStyleSheet('''
-            QPushButton {
-                background-color: #F08080;
-                color: white;
-                border: none;
-                border-radius: 20px;
-                font-size: 30px;
-                padding: 20px;
-            }
-            QPushButton:hover {
-                background-color: #CD5C5C;
-                color: white;
-            }
-        ''')
-        self.right_button = QPushButton('▶', self)
-        self.right_button.clicked.connect(self.on_right_click)
-        self.right_button.setStyleSheet('''
-            QPushButton {
-                background-color: #F08080;
-                color: white;
-                border: none;
-                border-radius: 20px;
-                font-size: 30px;
-                padding: 20px;
-            }
-            QPushButton:hover {
-                background-color: #CD5C5C;
                 color: white;
             }
         ''')
@@ -122,6 +92,54 @@ class Main(QWidget):
                 margin-top: 10px;
             }
         ''')
+        self.left_button = QPushButton('◀', self)
+        self.left_button.clicked.connect(self.on_left_click)
+        self.left_button.setStyleSheet('''
+            QPushButton {
+                background-color: #F08080;
+                color: white;
+                border: none;
+                border-radius: 20px;
+                font-size: 30px;
+                padding: 20px;
+            }
+            QPushButton:hover {
+                background-color: #CD5C5C;
+                color: white;
+            }
+        ''')
+        self.right_button = QPushButton('▶', self)
+        self.right_button.clicked.connect(self.on_right_click)
+        self.right_button.setStyleSheet('''
+            QPushButton {
+                background-color: #F08080;
+                color: white;
+                border: none;
+                border-radius: 20px;
+                font-size: 30px;
+                padding: 20px;
+            }
+            QPushButton:hover {
+                background-color: #CD5C5C;
+                color: white;
+            }
+        ''')
+        self.reset_button = QPushButton('Reset', self)
+        self.reset_button.clicked.connect(self.reset_board)
+        self.reset_button.setStyleSheet('''
+            QPushButton {
+                background-color: #F7DC6F;
+                color: white;
+                border: none;
+                border-radius: 20px;
+                font-size: 30px;
+                padding: 20px;
+            }
+            QPushButton:hover {
+                background-color: #D4B85D;
+                color: white;
+            }
+        ''')
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -137,7 +155,11 @@ class Main(QWidget):
         spacer = QSpacerItem(1, 200, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         button_layout.addItem(spacer)
 
+        button_layout2 = QHBoxLayout()
+        button_layout2.addWidget(self.reset_button)
+
         main_layout.addLayout(button_layout)
+        main_layout.addLayout(button_layout2)
 
         self.show()
 
@@ -153,9 +175,9 @@ class Main(QWidget):
                     col = mouse_pos[0] // self.square_size
                     self.array_now[row][col] = 0 if self.array_now[row][col] == 1 else 1
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_KP_PLUS:
+                    if event.key == pygame.K_KP_PLUS or event.key == pygame.K_RIGHT:
                         self.on_right_click()
-                    if event.key == pygame.K_KP_MINUS:
+                    if event.key == pygame.K_KP_MINUS or event.key == pygame.K_LEFT:
                         self.on_left_click()
                     if event.key == pygame.K_SPACE:
                         self.on_pause_click()
@@ -211,6 +233,17 @@ class Main(QWidget):
             self.slider.setValue(self.slider.value() + 1)
         else:
             print('Beschleunigung nicht möglich!')
+
+    def keyEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key.Key_Space:
+            self.on_pause_click()
+        elif event.key() == Qt.Key.Key_Right:
+            self.on_right_click()
+        elif event.key() == Qt.Key.Key_Left:
+            self.on_left_click()
+
+    def reset_board(self):
+        self.array_now.fill(0)
 
     def closeEvent(self, event):
         pygame.quit()
