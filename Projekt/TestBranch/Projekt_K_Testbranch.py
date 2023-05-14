@@ -3,15 +3,22 @@ import sys
 import numpy as np
 import pygame
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QKeyEvent
+from PyQt6.QtGui import QKeyEvent, QAction, QColor, QIcon
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, \
-    QLabel, QSpacerItem, QSizePolicy
+    QLabel, QSpacerItem, QSizePolicy, QMenuBar, QMenu
 from scipy.signal import convolve2d
+import qdarkstyle
 
 
 ########################################################################################################################
 #                                             PROJEKT_K -- MAIN                                                        #
 ########################################################################################################################
+# TODO: export array state to file (button implementation)
+# TODO: import file array state into current simulation (button implementation)
+# TODO: Menu Bar: UI-SWAP dark- / light-mode (funktionalität)
+# TODO: Menu Bar: Standardframe buttons in die MenuBar implementieren (mit Mac Icons for the memes: 🔴🟡🟢)
+# TODO: variable simulation window (settings menu: Menu bar)
+# TODO: Menu Bar: bind the settings tab to the right side
 
 class Main(QWidget):
     def __init__(self):
@@ -34,6 +41,22 @@ class Main(QWidget):
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
+
+        self.menu_bar = QMenuBar()
+        self.mb_close = QAction('🔴', self)
+        self.mb_close.triggered.connect(self.closeEvent)
+        self.mb_max = QAction('🟡', self)
+        self.mb_max.triggered.connect(self.maxEvent)
+        self.mb_min = QAction('🟢', self)
+        self.mb_min.triggered.connect(self.minEvent)
+        self.menu_bar.addActions((self.mb_close, self.mb_max, self.mb_min))
+        self.settings = self.menu_bar.addMenu('Settings')
+        self.UISwap = QAction('Swap that UI BOIIII', self)
+        self.UISwap.setShortcut('Ctrl+Shift+U+S')
+        self.UISwap.setStatusTip('Swaps the UI Duh')
+        self.UISwap.triggered.connect(self.Swap_UI)
+        self.settings.addAction(self.UISwap)
+        self.menu_bar.setCornerWidget(self.settings)
 
         self.pause_button = QPushButton('Start', self)
         self.pause_button.clicked.connect(self.on_pause_click)
@@ -147,6 +170,7 @@ class Main(QWidget):
         main_layout.addSpacing(20)
         main_layout.addWidget(self.slider)
         main_layout.addWidget(self.slider_label)
+        main_layout.setMenuBar(self.menu_bar)
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.left_button)
@@ -160,6 +184,8 @@ class Main(QWidget):
 
         main_layout.addLayout(button_layout)
         main_layout.addLayout(button_layout2)
+
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
 
         self.show()
 
@@ -245,13 +271,24 @@ class Main(QWidget):
     def reset_board(self):
         self.array_now.fill(0)
 
+    def Swap_UI(self):
+        print('SWAP THAT BOIIIII')
+
     def closeEvent(self, event):
         pygame.quit()
         sys.exit()
 
+    def maxEvent(self):
+        print('maxEvent triggered')
+        self.showMaximized()
+
+    def minEvent(self):
+        print('minEvent triggered')
+        self.showMinimized()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet())
     Main = Main()
     Main.run()
     sys.exit(app.exec())
