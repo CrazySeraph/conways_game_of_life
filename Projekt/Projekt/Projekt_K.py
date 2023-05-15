@@ -2,10 +2,11 @@ import sys
 
 import numpy as np
 import pygame
+import qdarkstyle
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QKeyEvent, QAction
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, \
-    QLabel, QSpacerItem, QSizePolicy
-from PyQt6.QtGui import QKeyEvent
+    QLabel, QSpacerItem, QSizePolicy, QMenuBar
 from scipy.signal import convolve2d
 
 
@@ -34,6 +35,25 @@ class Main(QWidget):
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
+
+        self.mb_close_icon, self.mb_max_icon, self.mb_min_icon, self.mac_mode_bool = '\u2716', '\U0001F5D6', '\U0001F5D5', False
+        #self.mac_mode_switch() # MAC MODE (GEFÄHRLICH)
+        self.DarkStyle = False
+        self.menu_bar = QMenuBar()
+        self.mb_close = QAction(self.mb_close_icon, self)
+        self.mb_close.triggered.connect(self.closeEvent)
+        self.mb_max = QAction(self.mb_max_icon, self)
+        self.mb_max.triggered.connect(self.maxEvent)
+        self.mb_min = QAction(self.mb_min_icon, self)
+        self.mb_min.triggered.connect(self.minEvent)
+        self.settings = self.menu_bar.addMenu('Settings')
+        self.UISwap = QAction('Swap that UI BOIIII', self)
+        self.UISwap.setShortcut('Ctrl+Shift+U')
+        self.UISwap.setStatusTip('Swaps the UI Duh')
+        self.UISwap.triggered.connect(self.Swap_UI)
+        self.settings.addAction(self.UISwap)
+        self.menu_bar.addActions((self.mb_close, self.mb_max, self.mb_min))
+        self.menu_bar.addMenu(self.settings)
 
         self.pause_button = QPushButton('Start', self)
         self.pause_button.clicked.connect(self.on_pause_click)
@@ -124,6 +144,22 @@ class Main(QWidget):
                 color: white;
             }
         ''')
+        self.reset_button = QPushButton('Reset', self)
+        self.reset_button.clicked.connect(self.reset_board)
+        self.reset_button.setStyleSheet('''
+            QPushButton {
+                background-color: #F7DC6F;
+                color: white;
+                border: none;
+                border-radius: 20px;
+                font-size: 30px;
+                padding: 20px;
+            }
+            QPushButton:hover {
+                background-color: #D4B85D;
+                color: white;
+            }
+        ''')
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -131,6 +167,7 @@ class Main(QWidget):
         main_layout.addSpacing(20)
         main_layout.addWidget(self.slider)
         main_layout.addWidget(self.slider_label)
+        main_layout.setMenuBar(self.menu_bar)
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.left_button)
@@ -139,7 +176,14 @@ class Main(QWidget):
         spacer = QSpacerItem(1, 200, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         button_layout.addItem(spacer)
 
+        button_layout2 = QHBoxLayout()
+        button_layout2.addWidget(self.reset_button)
+
         main_layout.addLayout(button_layout)
+        main_layout.addLayout(button_layout2)
+        self.setLayout(main_layout)
+
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
 
         self.show()
 
@@ -217,18 +261,50 @@ class Main(QWidget):
     def keyEvent(self, event: QKeyEvent):
         if event.key() == Qt.Key.Key_Space:
             self.on_pause_click()
-        elif event.key() == Qt.Key.Key_Plus or event.key() == Qt.Key.Key_Right:
+        elif event.key() == Qt.Key.Key_Right:
             self.on_right_click()
-        elif event.key() == Qt.Key.Key_Minus or event.key() == Qt.Key.Key_Left:
+        elif event.key() == Qt.Key.Key_Left:
             self.on_left_click()
+
+    def reset_board(self):
+        self.array_now.fill(0)
 
     def closeEvent(self, event):
         pygame.quit()
         sys.exit()
 
+    def Swap_UI(self):
+        print('SWAP THAT BOIIIII')
+        if not self.DarkStyle:
+            self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+            self.background_col, self.rect_col, self.fill_col = pygame.Color("#1E1E1E"), pygame.Color(
+                "#424242"), pygame.Color("#EDEDED")
+            self.DarkStyle = True
+        else:
+            self.setStyleSheet('')
+            self.background_col, self.rect_col, self.fill_col = pygame.Color("#E8E8E8"), pygame.Color(
+                '#AAAAAA'), pygame.Color('#1E90FF')
+            self.DarkStyle = False
+
+    def maxEvent(self):
+        print('maxEvent triggered')
+        self.showMaximized()
+
+    def minEvent(self):
+        print('minEvent triggered')
+        self.showMinimized()
+
+    def mac_mode_switch(self):
+        if not self.mac_mode_bool:
+            self.mb_close_icon, self.mb_max_icon, self.mb_min_icon = '🔴', '🟡', '🟢'
+            self.mac_mode_bool = True
+        else:
+            self.mb_close_icon, self.mb_max_icon, self.mb_min_icon = '\u2716', '\U0001F5D6', '\U0001F5D5'
+            self.mac_mode_bool = False
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    # app.setStyleSheet(qdarkstyle.load_stylesheet())
     Main = Main()
     Main.run()
     sys.exit(app.exec())
