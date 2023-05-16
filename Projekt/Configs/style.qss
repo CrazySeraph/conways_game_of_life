@@ -1,0 +1,65 @@
+#slider::groove:horizontal {
+    border: 1px solid #999999;
+    height: 8px;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #B1B1B1, stop:1 #c4c4c4);
+    margin: 2px 0;
+}
+
+#slider::handle:horizontal {
+    background: #50C878;
+    border: none;
+    height: 30px;
+    width: 30px;
+    margin: -10px 0;
+    border-radius: 20px;
+}
+
+#slider::handle:horizontal:hover {
+    background: #3CB371;
+    border: none;
+    height: 30px;
+    width: 30px;
+    margin: -10px 0;
+    border-radius: 20px;
+}
+#slider_label {
+    font-size: 20px;
+    color: #808080;
+    margin-top: 10px;
+}
+#left_button {
+    background-color: #F08080;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 30px;
+    padding: 20px;
+}
+#left_button:hover {
+    background-color: #CD5C5C;
+    color: white;
+}
+#right_button {
+    background-color: #F08080;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 30px;
+    padding: 20px;
+}
+#right_button:hover {
+    background-color: #CD5C5C;
+    color: white;
+}
+#reset_button {
+    background-color: #F7DC6F;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 30px;
+    padding: 20px;
+}
+#reset_button:hover {
+    background-color: #D4B85D;
+    color: white;
+}

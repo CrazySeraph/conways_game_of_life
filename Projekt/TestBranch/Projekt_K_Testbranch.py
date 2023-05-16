@@ -1,8 +1,8 @@
-import random
 import sys, os
 import numpy as np
 import pygame
 import qdarkstyle
+import configparser
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QKeyEvent, QAction
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, \
@@ -11,11 +11,14 @@ from scipy.signal import convolve2d
 
 
 ########################################################################################################################
-#                                             PROJEKT_K -- MAIN                                                        #
+#                                             PROJEKT_K -- Testbranch                                                  #
 ########################################################################################################################
-# TODO: variable simulation window (settings menu: Menu bar)
-# TODO: Menu Bar: bind the settings tab to the right side
-# TODO: Menu Bar: Settings: Extra Window? Viele Settings? Custom Hotkeys?
+# TODO variable simulation window (settings menu: Menu bar)
+# TODO Menu Bar: bind the settings tab to the right side
+# TODO Menu Bar: Settings: Extra Window? Viele Settings? Custom Hotkeys?
+# TODO hotkey übertragen + fix
+# TODO .css for the styles
+# TODO bei reset die originalpositionen wiederherstellen | momentanen resetbutton zu clear umbenennen
 
 class Main(QWidget):
     def __init__(self):
@@ -45,7 +48,12 @@ class Main(QWidget):
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
 
         self.mb_close_icon, self.mb_max_icon, self.mb_min_icon, self.mac_mode_bool = '\u2716', '\U0001F5D6', '\U0001F5D5', False
+        self.configdir = os.path.abspath(os.path.join(parent_dir, './Configs'))
+        self.configmode = configparser.ConfigParser()
+        self.configmode.read(self.configdir + '/mode.ini')
         self.DarkStyle = False
+        if self.configmode.getboolean('StyleMode', 'mode'):
+            self.Swap_UI()
         self.menu_bar = QMenuBar()
         self.mb_close = QAction(self.mb_close_icon, self)
         self.mb_close.triggered.connect(self.closeEvent)
@@ -292,11 +300,13 @@ class Main(QWidget):
         self.array_now.fill(0)
 
     def closeEvent(self, event):
+        self.configmode.set('StyleMode', 'mode', str(self.DarkStyle))
+        with open(self.configdir+'/mode.ini', 'w') as configfile:
+            self.configmode.write(configfile)
         pygame.quit()
         sys.exit()
 
     def Swap_UI(self):
-        print('SWAP THAT BOIIIII')
         if not self.DarkStyle:
             self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
             self.background_col, self.rect_col, self.fill_col = pygame.Color("#1E1E1E"), pygame.Color(
@@ -309,11 +319,12 @@ class Main(QWidget):
             self.DarkStyle = False
 
     def maxEvent(self):
-        print('maxEvent triggered')
-        self.showMaximized()
+        if self.isMaximized():
+            self.showNormal()
+        else:
+            self.showMaximized()
 
     def minEvent(self):
-        print('minEvent triggered')
         self.showMinimized()
 
     def save_simulation(self):
@@ -324,7 +335,7 @@ class Main(QWidget):
                 np.save(file_path, self.array_now)
                 print('Simulation saved successfully')
             except Exception as error:
-                print('Error Saving the Simulation: ', error)
+                print('Error while saving the Simulation: ', error)
 
     def load_simulation(self):
         file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", self.simulationpath, "Numpy Files (*.npy)")
@@ -335,14 +346,13 @@ class Main(QWidget):
             try:
                 self.array_now = np.load(file_path)
             except Exception as error:
-                print('Error Saving the Simulation: ', error)
+                print('Error while loading the Simulation: ', error)
 
     def rand_simulation(self):
         if self.active:
             self.on_pause_click()
         if not self.active:
             self.array_now = np.random.randint(2, size=(100, 100))
-            print(self.array_now)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

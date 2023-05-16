@@ -1,4 +1,3 @@
-import random
 import sys, os
 import numpy as np
 import pygame
@@ -293,7 +292,6 @@ class Main(QWidget):
         sys.exit()
 
     def Swap_UI(self):
-        print('SWAP THAT BOIIIII')
         if not self.DarkStyle:
             self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
             self.background_col, self.rect_col, self.fill_col = pygame.Color("#1E1E1E"), pygame.Color(
@@ -306,11 +304,12 @@ class Main(QWidget):
             self.DarkStyle = False
 
     def maxEvent(self):
-        print('maxEvent triggered')
-        self.showMaximized()
+        if self.isMaximized():
+            self.showNormal()
+        else:
+            self.showMaximized()
 
     def minEvent(self):
-        print('minEvent triggered')
         self.showMinimized()
 
     def save_simulation(self):
