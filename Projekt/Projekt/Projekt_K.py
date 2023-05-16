@@ -1,3 +1,4 @@
+import random
 import sys, os
 import numpy as np
 import pygame
@@ -30,8 +31,9 @@ class Main(QWidget):
         self.active = False
         self.background_col, self.rect_col, self.fill_col = pygame.Color("#E8E8E8"), pygame.Color(
             '#AAAAAA'), pygame.Color('#1E90FF')
+        self.sim_x, self.sim_y = 100, 100
         self.screen_width, self.screen_height = 1000, 1000
-        self.array_now = np.zeros((100, 100), dtype=int)
+        self.array_now = np.zeros((self.sim_y, self.sim_x), dtype=int)
         self.square_size = int(self.screen_width / len(self.array_now))
         self.speed = 10
         pygame.init()
@@ -40,7 +42,6 @@ class Main(QWidget):
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
 
         self.mb_close_icon, self.mb_max_icon, self.mb_min_icon, self.mac_mode_bool = '\u2716', '\U0001F5D6', '\U0001F5D5', False
-        # self.mac_mode_switch() # MAC MODE (GEFÄHRLICH)
         self.DarkStyle = False
         self.menu_bar = QMenuBar()
         self.mb_close = QAction(self.mb_close_icon, self)
@@ -64,7 +65,11 @@ class Main(QWidget):
         self.load_simu.setShortcut('Ctrl+Shift+l')
         self.load_simu.setStatusTip('Loads the Simulation')
         self.load_simu.triggered.connect(self.load_simulation)
-        self.simulation.addActions((self.save_simu, self.load_simu))
+        self.rand_simu = QAction('Randomize Simulation', self)
+        self.rand_simu.setShortcut('Ctr+Shift+r')
+        self.rand_simu.setStatusTip('Randomizes the Simulation')
+        self.rand_simu.triggered.connect(self.rand_simulation)
+        self.simulation.addActions((self.save_simu, self.load_simu, self.rand_simu))
         self.menu_bar.addActions((self.mb_close, self.mb_max, self.mb_min))
         self.menu_bar.addMenu(self.simulation)
         self.menu_bar.addMenu(self.settings)
@@ -328,6 +333,13 @@ class Main(QWidget):
                 self.array_now = np.load(file_path)
             except Exception as error:
                 print('Error Saving the Simulation: ', error)
+
+    def rand_simulation(self):
+        if self.active:
+            self.on_pause_click()
+        if not self.active:
+            self.array_now = np.random.randint(2, size=(100, 100))
+            print(self.array_now)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
