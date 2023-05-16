@@ -33,8 +33,8 @@ class Main(QWidget):
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
         parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-        correct_dir = os.path.abspath(os.path.join(parent_dir, './Simulation Files'))
-        self.simulationpath = correct_dir
+        self.image_dir = os.path.abspath(os.path.join(parent_dir, './Images'))
+        self.simulationpath = os.path.abspath(os.path.join(parent_dir, './Simulation Files'))
         self.active, self.rand_lvl = False, 0.50
         self.background_col, self.rect_col, self.fill_col = pygame.Color("#E8E8E8"), pygame.Color(
             '#AAAAAA'), pygame.Color('#1E90FF')
@@ -419,7 +419,7 @@ class Main(QWidget):
 
     def import_image(self, stringvar):
         if stringvar == 'load':
-            file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", '',
+            file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", self.image_dir,
                                                          "Image Files (*.png *.jpg *.jpeg)")
             if self.active:
                 self.on_pause_click()
