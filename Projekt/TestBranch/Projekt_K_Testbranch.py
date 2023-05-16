@@ -1,24 +1,20 @@
-import sys
-
+import sys, os
 import numpy as np
 import pygame
 import qdarkstyle
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QKeyEvent, QAction
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, \
-    QLabel, QSpacerItem, QSizePolicy, QMenuBar
+    QLabel, QSpacerItem, QSizePolicy, QMenuBar, QFileDialog
 from scipy.signal import convolve2d
 
 
 ########################################################################################################################
 #                                             PROJEKT_K -- MAIN                                                        #
 ########################################################################################################################
-# TODO: export array state to file (button implementation)
-# TODO: import file array state into current simulation (button implementation)
-# TODO: Menu Bar: UI-SWAP dark- / light-mode (funktionalität)
-# TODO: Menu Bar: Standardframe buttons in die MenuBar implementieren (mit Mac Icons for the memes: 🔴🟡🟢)
 # TODO: variable simulation window (settings menu: Menu bar)
 # TODO: Menu Bar: bind the settings tab to the right side
+# TODO: Menu Bar: Settings: Extra Window? Viele Settings? Custom Hotkeys?
 
 class Main(QWidget):
     def __init__(self):
@@ -30,6 +26,10 @@ class Main(QWidget):
         self.frame = QFrame(self)
         self.frame.setGeometry(10, 10, 400, 400)
 
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+        correct_dir = os.path.abspath(os.path.join(parent_dir, './Simulation Files'))
+        self.simulationpath = correct_dir
         self.active = False
         self.background_col, self.rect_col, self.fill_col = pygame.Color("#E8E8E8"), pygame.Color(
             '#AAAAAA'), pygame.Color('#1E90FF')
@@ -43,7 +43,7 @@ class Main(QWidget):
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
 
         self.mb_close_icon, self.mb_max_icon, self.mb_min_icon, self.mac_mode_bool = '\u2716', '\U0001F5D6', '\U0001F5D5', False
-        #self.mac_mode_switch() # MAC MODE (GEFÄHRLICH)
+        # self.mac_mode_switch() # MAC MODE (GEFÄHRLICH)
         self.DarkStyle = False
         self.menu_bar = QMenuBar()
         self.mb_close = QAction(self.mb_close_icon, self)
@@ -53,12 +53,23 @@ class Main(QWidget):
         self.mb_min = QAction(self.mb_min_icon, self)
         self.mb_min.triggered.connect(self.minEvent)
         self.settings = self.menu_bar.addMenu('Settings')
-        self.UISwap = QAction('Swap that UI BOIIII', self)
+        self.UISwap = QAction('Swap UI', self)
         self.UISwap.setShortcut('Ctrl+Shift+U')
-        self.UISwap.setStatusTip('Swaps the UI Duh')
+        self.UISwap.setStatusTip('Swaps the UI')
         self.UISwap.triggered.connect(self.Swap_UI)
         self.settings.addAction(self.UISwap)
+        self.simulation = self.menu_bar.addMenu('Simulation')
+        self.save_simu = QAction('Save Simulation', self)
+        self.save_simu.setShortcut('Ctrl+Shift+s')
+        self.save_simu.setStatusTip('Saves the Simulation')
+        self.save_simu.triggered.connect(self.save_simulation)
+        self.load_simu = QAction('Load Simulation', self)
+        self.load_simu.setShortcut('Ctrl+Shift+l')
+        self.load_simu.setStatusTip('Loads the Simulation')
+        self.load_simu.triggered.connect(self.load_simulation)
+        self.simulation.addActions((self.save_simu, self.load_simu))
         self.menu_bar.addActions((self.mb_close, self.mb_max, self.mb_min))
+        self.menu_bar.addMenu(self.simulation)
         self.menu_bar.addMenu(self.settings)
 
         self.pause_button = QPushButton('Start', self)
@@ -308,9 +319,29 @@ class Main(QWidget):
             self.mb_close_icon, self.mb_max_icon, self.mb_min_icon = '\u2716', '\U0001F5D6', '\U0001F5D5'
             self.mac_mode_bool = False
 
+    def save_simulation(self):
+        file_path, _ = QFileDialog().getSaveFileName(self, "Save Simulation", self.simulationpath, "Numpy Files (*.npy)")
+
+        if file_path:
+            try:
+                np.save(file_path, self.array_now)
+                print('Simulation saved successfully')
+            except Exception as error:
+                print('Error Saving the Simulation: ', error)
+
+    def load_simulation(self):
+        file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", self.simulationpath, "Numpy Files (*.npy)")
+
+        if self.active:
+            self.on_pause_click()
+        if file_path and not self.active:
+            try:
+                self.array_now = np.load(file_path)
+            except Exception as error:
+                print('Error Saving the Simulation: ', error)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # app.setStyleSheet(qdarkstyle.load_stylesheet())
     Main = Main()
     Main.run()
     sys.exit(app.exec())

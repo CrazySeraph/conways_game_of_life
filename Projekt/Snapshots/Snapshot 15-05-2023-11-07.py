@@ -13,12 +13,6 @@ from scipy.signal import convolve2d
 ########################################################################################################################
 #                                             PROJEKT_K -- MAIN                                                        #
 ########################################################################################################################
-# TODO: export array state to file (button implementation)
-# TODO: import file array state into current simulation (button implementation)
-# TODO: Menu Bar: UI-SWAP dark- / light-mode (funktionalität)
-# TODO: Menu Bar: Standardframe buttons in die MenuBar implementieren (mit Mac Icons for the memes: 🔴🟡🟢)
-# TODO: variable simulation window (settings menu: Menu bar)
-# TODO: Menu Bar: bind the settings tab to the right side
 
 class Main(QWidget):
     def __init__(self):
