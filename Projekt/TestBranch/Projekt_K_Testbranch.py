@@ -13,13 +13,14 @@ from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider,
 from keras.datasets import mnist
 from scipy.signal import convolve2d
 
-
 ########################################################################################################################
 #                                             PROJEKT_K -- Testbranch                                                  #
 ########################################################################################################################
 # TODO .css for the styles (PROBLEM MIT QDARKSTYLE)
 
 (x_train, _), (_, _) = mnist.load_data()
+
+
 class Main(QWidget):
     def __init__(self):
         super().__init__()
@@ -451,6 +452,7 @@ class Main(QWidget):
         start_col = (100 - width) // 2
         copy_array[start_row:start_row + height, start_col:start_col + width] = image_array
         self.array_now = copy_array
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
