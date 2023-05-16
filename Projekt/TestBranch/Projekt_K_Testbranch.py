@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 import numpy as np
 import pygame
 import qdarkstyle
@@ -6,7 +7,7 @@ import configparser
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QKeyEvent, QAction
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, \
-    QLabel, QSpacerItem, QSizePolicy, QMenuBar, QFileDialog
+    QLabel, QSpacerItem, QSizePolicy, QMenuBar, QFileDialog, QWidgetAction
 from scipy.signal import convolve2d
 
 
@@ -14,11 +15,8 @@ from scipy.signal import convolve2d
 #                                             PROJEKT_K -- Testbranch                                                  #
 ########################################################################################################################
 # TODO variable simulation window (settings menu: Menu bar)
-# TODO Menu Bar: bind the settings tab to the right side
-# TODO Menu Bar: Settings: Extra Window? Viele Settings? Custom Hotkeys?
-# TODO hotkey übertragen + fix
-# TODO .css for the styles
-# TODO bei reset die originalpositionen wiederherstellen | momentanen resetbutton zu clear umbenennen
+# TODO .css for the styles (PROBLEM MIT QDARKSTYLE)
+# TODO Image to Simulation? (for the memes)
 
 class Main(QWidget):
     def __init__(self):
@@ -34,12 +32,13 @@ class Main(QWidget):
         parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
         correct_dir = os.path.abspath(os.path.join(parent_dir, './Simulation Files'))
         self.simulationpath = correct_dir
-        self.active = False
+        self.active, self.rand_lvl = False, 0.50
         self.background_col, self.rect_col, self.fill_col = pygame.Color("#E8E8E8"), pygame.Color(
             '#AAAAAA'), pygame.Color('#1E90FF')
         self.sim_x, self.sim_y = 100, 100
         self.screen_width, self.screen_height = 1000, 1000
         self.array_now = np.zeros((self.sim_y, self.sim_x), dtype=int)
+        self.array_state = self.array_now
         self.square_size = int(self.screen_width / len(self.array_now))
         self.speed = 10
         pygame.init()
@@ -47,13 +46,14 @@ class Main(QWidget):
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Conways game of Life - Kiste Edition")
 
-        self.mb_close_icon, self.mb_max_icon, self.mb_min_icon, self.mac_mode_bool = '\u2716', '\U0001F5D6', '\U0001F5D5', False
         self.configdir = os.path.abspath(os.path.join(parent_dir, './Configs'))
         self.configmode = configparser.ConfigParser()
         self.configmode.read(self.configdir + '/mode.ini')
         self.DarkStyle = False
         if self.configmode.getboolean('StyleMode', 'mode'):
             self.Swap_UI()
+
+        self.mb_close_icon, self.mb_max_icon, self.mb_min_icon, self.mac_mode_bool = '\u2716', '\U0001F5D6', '\U0001F5D5', False
         self.menu_bar = QMenuBar()
         self.mb_close = QAction(self.mb_close_icon, self)
         self.mb_close.triggered.connect(self.closeEvent)
@@ -77,10 +77,20 @@ class Main(QWidget):
         self.load_simu.setStatusTip('Loads the Simulation')
         self.load_simu.triggered.connect(self.load_simulation)
         self.rand_simu = QAction('Randomize Simulation', self)
-        self.rand_simu.setShortcut('Ctr+Shift+r')
+        self.rand_simu.setShortcut('Ctrl+Shift+r')
         self.rand_simu.setStatusTip('Randomizes the Simulation')
         self.rand_simu.triggered.connect(self.rand_simulation)
-        self.simulation.addActions((self.save_simu, self.load_simu, self.rand_simu))
+        self.rand_slider_a = QWidgetAction(self)
+        self.rand_slider_a.setDefaultWidget(QSlider(Qt.Orientation.Horizontal))
+        rand_slider = self.rand_slider_a.defaultWidget()
+        rand_slider.setRange(1, 100)
+        rand_slider.setSingleStep(1)
+        rand_slider.setValue(int(self.rand_lvl * 100))
+        rand_slider.valueChanged.connect(self.on_rand_slider_change)
+        self.rand_slider_label = QLabel(self)
+        self.rand_slider_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.rand_slider_label.setStyleSheet("background-color: transparent;")
+        self.simulation.addActions((self.save_simu, self.load_simu, self.rand_simu, self.rand_slider_a))
         self.menu_bar.addActions((self.mb_close, self.mb_max, self.mb_min))
         self.menu_bar.addMenu(self.simulation)
         self.menu_bar.addMenu(self.settings)
@@ -190,6 +200,22 @@ class Main(QWidget):
                 color: white;
             }
         ''')
+        self.clear_button = QPushButton('Clear', self)
+        self.clear_button.clicked.connect(self.clear_board)
+        self.clear_button.setStyleSheet('''
+            QPushButton {
+                background-color: #F7DC6F;
+                color: white;
+                border: none;
+                border-radius: 20px;
+                font-size: 30px;
+                padding: 20px;
+            }
+            QPushButton:hover {
+                background-color: #D4B85D;
+                color: white;
+            }
+        ''')
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -208,6 +234,7 @@ class Main(QWidget):
 
         button_layout2 = QHBoxLayout()
         button_layout2.addWidget(self.reset_button)
+        button_layout2.addWidget(self.clear_button)
 
         main_layout.addLayout(button_layout)
         main_layout.addLayout(button_layout2)
@@ -235,6 +262,16 @@ class Main(QWidget):
                         self.on_left_click()
                     if event.key == pygame.K_SPACE:
                         self.on_pause_click()
+                    if (event.mod & pygame.KMOD_CTRL) and (event.mod & pygame.KMOD_SHIFT):
+                        if event.key == pygame.K_u:
+                            self.Swap_UI()
+                        if event.key == pygame.K_s:
+                            self.save_simulation()
+                        if event.key == pygame.K_l:
+                            self.load_simulation()
+                        if event.key == pygame.K_r:
+                            self.rand_simulation()
+
             self.screen.fill(pygame.Color(self.background_col))
             self.draw_grid()
             self.Game_of_Life_Logic()
@@ -267,6 +304,7 @@ class Main(QWidget):
         if self.pause_button.text() == 'Pause':
             pause_style = pause_style.replace("background-color: #50C878", "background-color: #F08080")
             pause_style = pause_style.replace("background-color: #3CB371", "background-color: #CD5C5C")
+            self.array_state = self.array_now
         else:
             pause_style = pause_style.replace("background-color: #F08080", "background-color: #50C878")
             pause_style = pause_style.replace("background-color: #CD5C5C", "background-color: #3CB371")
@@ -275,6 +313,10 @@ class Main(QWidget):
     def on_slider_change(self, value):
         self.speed = value
         self.slider_label.setText(str(f"Ticks pro Sekunde: {self.slider.value()}"))
+
+    def on_rand_slider_change(self, value):
+        self.rand_lvl = round((value - 1) / 99 * (1 - 0.01) + 0.01, 2)
+        self.rand_slider_label.setText(str(f"Rand Value: {self.rand_lvl}"))
 
     def on_left_click(self):
         if self.slider.value() > 1:
@@ -297,6 +339,10 @@ class Main(QWidget):
             self.on_left_click()
 
     def reset_board(self):
+
+        self.array_now = self.array_state
+
+    def clear_board(self):
         self.array_now.fill(0)
 
     def closeEvent(self, event):
@@ -349,10 +395,12 @@ class Main(QWidget):
                 print('Error while loading the Simulation: ', error)
 
     def rand_simulation(self):
+        rand_1 = 1 - self.rand_lvl
+        rand_2 = 1 - rand_1
         if self.active:
             self.on_pause_click()
         if not self.active:
-            self.array_now = np.random.randint(2, size=(100, 100))
+            self.array_now = np.random.choice([0, 1], size=(100, 100), p=(rand_1, rand_2))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
