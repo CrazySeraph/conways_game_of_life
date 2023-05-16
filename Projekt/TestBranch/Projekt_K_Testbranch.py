@@ -1,9 +1,11 @@
-import sys
+import configparser
 import os
+import sys
+
 import numpy as np
 import pygame
 import qdarkstyle
-import configparser
+from PIL import Image
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QKeyEvent, QAction
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, \
@@ -14,9 +16,7 @@ from scipy.signal import convolve2d
 ########################################################################################################################
 #                                             PROJEKT_K -- Testbranch                                                  #
 ########################################################################################################################
-# TODO variable simulation window (settings menu: Menu bar)
 # TODO .css for the styles (PROBLEM MIT QDARKSTYLE)
-# TODO Image to Simulation? (for the memes)
 
 class Main(QWidget):
     def __init__(self):
@@ -87,10 +87,11 @@ class Main(QWidget):
         rand_slider.setSingleStep(1)
         rand_slider.setValue(int(self.rand_lvl * 100))
         rand_slider.valueChanged.connect(self.on_rand_slider_change)
-        self.rand_slider_label = QLabel(self)
-        self.rand_slider_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.rand_slider_label.setStyleSheet("background-color: transparent;")
-        self.simulation.addActions((self.save_simu, self.load_simu, self.rand_simu, self.rand_slider_a))
+        self.imp_image = QAction('Import an Image', self)
+        self.imp_image.setShortcut('Ctrl+Shift+i')
+        self.imp_image.setStatusTip('import an image to display in the simulation')
+        self.imp_image.triggered.connect(self.import_image)
+        self.simulation.addActions((self.save_simu, self.load_simu, self.rand_simu, self.rand_slider_a, self.imp_image))
         self.menu_bar.addActions((self.mb_close, self.mb_max, self.mb_min))
         self.menu_bar.addMenu(self.simulation)
         self.menu_bar.addMenu(self.settings)
@@ -271,6 +272,8 @@ class Main(QWidget):
                             self.load_simulation()
                         if event.key == pygame.K_r:
                             self.rand_simulation()
+                        if event.key == pygame.K_i:
+                            self.import_image()
 
             self.screen.fill(pygame.Color(self.background_col))
             self.draw_grid()
@@ -316,7 +319,6 @@ class Main(QWidget):
 
     def on_rand_slider_change(self, value):
         self.rand_lvl = round((value - 1) / 99 * (1 - 0.01) + 0.01, 2)
-        self.rand_slider_label.setText(str(f"Rand Value: {self.rand_lvl}"))
 
     def on_left_click(self):
         if self.slider.value() > 1:
@@ -339,15 +341,17 @@ class Main(QWidget):
             self.on_left_click()
 
     def reset_board(self):
-
-        self.array_now = self.array_state
+        if self.active:
+            self.on_pause_click()
+        if not self.active:
+            self.array_now = self.array_state
 
     def clear_board(self):
         self.array_now.fill(0)
 
     def closeEvent(self, event):
         self.configmode.set('StyleMode', 'mode', str(self.DarkStyle))
-        with open(self.configdir+'/mode.ini', 'w') as configfile:
+        with open(self.configdir + '/mode.ini', 'w') as configfile:
             self.configmode.write(configfile)
         pygame.quit()
         sys.exit()
@@ -374,7 +378,8 @@ class Main(QWidget):
         self.showMinimized()
 
     def save_simulation(self):
-        file_path, _ = QFileDialog().getSaveFileName(self, "Save Simulation", self.simulationpath, "Numpy Files (*.npy)")
+        file_path, _ = QFileDialog().getSaveFileName(self, "Save Simulation", self.simulationpath,
+                                                     "Numpy Files (*.npy)")
 
         if file_path:
             try:
@@ -384,7 +389,8 @@ class Main(QWidget):
                 print('Error while saving the Simulation: ', error)
 
     def load_simulation(self):
-        file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", self.simulationpath, "Numpy Files (*.npy)")
+        file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", self.simulationpath,
+                                                     "Numpy Files (*.npy)")
 
         if self.active:
             self.on_pause_click()
@@ -401,6 +407,28 @@ class Main(QWidget):
             self.on_pause_click()
         if not self.active:
             self.array_now = np.random.choice([0, 1], size=(100, 100), p=(rand_1, rand_2))
+
+    def import_image(self):
+        file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", '',
+                                                     "Image Files (*.png *.jpg *.jpeg)")
+        if self.active:
+            self.on_pause_click()
+        if file_path and not self.active:
+            try:
+                image = Image.open(file_path)
+                image.thumbnail((100, 100))
+                image_gray = image.convert("L")
+                image_binary = image_gray.point(lambda p: int(p > 128))
+                image_array = np.array(image_binary)
+                copy_array = np.zeros((100, 100))
+                height, width = image_array.shape
+                start_row = (100 - height) // 2
+                start_col = (100 - width) // 2
+                copy_array[start_row:start_row + height, start_col:start_col + width] = image_array
+                self.array_now = copy_array
+            except Exception as error:
+                print('Error while loading the Image: ', error)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
