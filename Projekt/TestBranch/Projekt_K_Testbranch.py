@@ -10,6 +10,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QKeyEvent, QAction
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, \
     QLabel, QSpacerItem, QSizePolicy, QMenuBar, QFileDialog, QWidgetAction
+from keras.datasets import mnist
 from scipy.signal import convolve2d
 
 
@@ -18,6 +19,7 @@ from scipy.signal import convolve2d
 ########################################################################################################################
 # TODO .css for the styles (PROBLEM MIT QDARKSTYLE)
 
+(x_train, _), (_, _) = mnist.load_data()
 class Main(QWidget):
     def __init__(self):
         super().__init__()
@@ -90,8 +92,14 @@ class Main(QWidget):
         self.imp_image = QAction('Import an Image', self)
         self.imp_image.setShortcut('Ctrl+Shift+i')
         self.imp_image.setStatusTip('import an image to display in the simulation')
-        self.imp_image.triggered.connect(self.import_image)
-        self.simulation.addActions((self.save_simu, self.load_simu, self.rand_simu, self.rand_slider_a, self.imp_image))
+        self.imp_image.triggered.connect(lambda: self.import_image('load'))
+        self.rand_image = QAction('Load a random Image', self)
+        self.rand_image.setShortcut('Ctrl+Shift+m')
+        self.rand_image.setStatusTip(
+            'Loads 9 random images from a dataset and combines them into one then displays them')
+        self.rand_image.triggered.connect(lambda: self.import_image('gen'))
+        self.simulation.addActions(
+            (self.save_simu, self.load_simu, self.rand_simu, self.rand_slider_a, self.imp_image, self.rand_image))
         self.menu_bar.addActions((self.mb_close, self.mb_max, self.mb_min))
         self.menu_bar.addMenu(self.simulation)
         self.menu_bar.addMenu(self.settings)
@@ -408,27 +416,41 @@ class Main(QWidget):
         if not self.active:
             self.array_now = np.random.choice([0, 1], size=(100, 100), p=(rand_1, rand_2))
 
-    def import_image(self):
-        file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", '',
-                                                     "Image Files (*.png *.jpg *.jpeg)")
-        if self.active:
-            self.on_pause_click()
-        if file_path and not self.active:
-            try:
-                image = Image.open(file_path)
-                image.thumbnail((100, 100))
-                image_gray = image.convert("L")
-                image_binary = image_gray.point(lambda p: int(p > 128))
-                image_array = np.array(image_binary)
-                copy_array = np.zeros((100, 100))
-                height, width = image_array.shape
-                start_row = (100 - height) // 2
-                start_col = (100 - width) // 2
-                copy_array[start_row:start_row + height, start_col:start_col + width] = image_array
-                self.array_now = copy_array
-            except Exception as error:
-                print('Error while loading the Image: ', error)
-
+    def import_image(self, stringvar):
+        if stringvar == 'load':
+            file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", '',
+                                                         "Image Files (*.png *.jpg *.jpeg)")
+            if self.active:
+                self.on_pause_click()
+            if file_path and not self.active:
+                try:
+                    image = Image.open(file_path)
+                    image.thumbnail((100, 100))
+                except Exception as error:
+                    print('Error while loading the Image: ', error)
+        elif stringvar == 'gen':
+            random_indices = np.random.choice(len(x_train), size=9, replace=False)
+            grid_size = (3, 3)
+            combined_image = np.zeros((grid_size[0] * 28, grid_size[1] * 28))
+            for i, idx in enumerate(random_indices):
+                row = i // grid_size[1]
+                col = i % grid_size[1]
+                image = x_train[idx]
+                row_start = row * 28
+                row_end = (row + 1) * 28
+                col_start = col * 28
+                col_end = (col + 1) * 28
+                combined_image[row_start:row_end, col_start:col_end] = image
+                image = Image.fromarray(combined_image.astype(np.uint8))
+        image_gray = image.convert("L")
+        image_binary = image_gray.point(lambda p: int(p > 128))
+        image_array = np.array(image_binary)
+        copy_array = np.zeros((100, 100))
+        height, width = image_array.shape
+        start_row = (100 - height) // 2
+        start_col = (100 - width) // 2
+        copy_array[start_row:start_row + height, start_col:start_col + width] = image_array
+        self.array_now = copy_array
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
