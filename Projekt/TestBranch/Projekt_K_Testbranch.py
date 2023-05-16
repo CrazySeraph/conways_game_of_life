@@ -311,14 +311,6 @@ class Main(QWidget):
         print('minEvent triggered')
         self.showMinimized()
 
-    def mac_mode_switch(self):
-        if not self.mac_mode_bool:
-            self.mb_close_icon, self.mb_max_icon, self.mb_min_icon = '🔴', '🟡', '🟢'
-            self.mac_mode_bool = True
-        else:
-            self.mb_close_icon, self.mb_max_icon, self.mb_min_icon = '\u2716', '\U0001F5D6', '\U0001F5D5'
-            self.mac_mode_bool = False
-
     def save_simulation(self):
         file_path, _ = QFileDialog().getSaveFileName(self, "Save Simulation", self.simulationpath, "Numpy Files (*.npy)")
 
