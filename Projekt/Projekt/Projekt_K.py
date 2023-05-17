@@ -281,7 +281,9 @@ class Main(QWidget):
                         if event.key == pygame.K_r:
                             self.rand_simulation()
                         if event.key == pygame.K_i:
-                            self.import_image()
+                            self.import_image('load')
+                        if pygame.key == pygame.K_m:
+                            self.import_image('gen')
 
             self.screen.fill(pygame.Color(self.background_col))
             self.draw_grid()
@@ -417,6 +419,7 @@ class Main(QWidget):
             self.array_now = np.random.choice([0, 1], size=(100, 100), p=(rand_1, rand_2))
 
     def import_image(self, stringvar):
+        check = 0
         if stringvar == 'load':
             file_path, _ = QFileDialog().getOpenFileName(self, "Select Simulation File", self.image_dir,
                                                          "Image Files (*.png *.jpg *.jpeg)")
@@ -426,6 +429,7 @@ class Main(QWidget):
                 try:
                     image = Image.open(file_path)
                     image.thumbnail((100, 100))
+                    check = 1
                 except Exception as error:
                     print('Error while loading the Image: ', error)
         elif stringvar == 'gen':
@@ -442,15 +446,17 @@ class Main(QWidget):
                 col_end = (col + 1) * 28
                 combined_image[row_start:row_end, col_start:col_end] = image
                 image = Image.fromarray(combined_image.astype(np.uint8))
-        image_gray = image.convert("L")
-        image_binary = image_gray.point(lambda p: int(p > 128))
-        image_array = np.array(image_binary)
-        copy_array = np.zeros((100, 100))
-        height, width = image_array.shape
-        start_row = (100 - height) // 2
-        start_col = (100 - width) // 2
-        copy_array[start_row:start_row + height, start_col:start_col + width] = image_array
-        self.array_now = copy_array
+                check = 1
+        if check == 1:
+            image_gray = image.convert("L")
+            image_binary = image_gray.point(lambda p: int(p > 128))
+            image_array = np.array(image_binary)
+            copy_array = np.zeros((100, 100))
+            height, width = image_array.shape
+            start_row = (100 - height) // 2
+            start_col = (100 - width) // 2
+            copy_array[start_row:start_row + height, start_col:start_col + width] = image_array
+            self.array_now = copy_array
 
 
 if __name__ == '__main__':
