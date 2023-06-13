@@ -312,8 +312,7 @@ class Main(QWidget):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     # Falls das Pygame Fenster geschlossen wird, werden alle restlichen Fenster auch geschlossen
-                    pygame.quit()
-                    sys.exit()
+                    self.closeEvent(event)
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     # sobald irgendwo im Pygame fenster geklickt wird, werden die koordinaten der Maus ermittelt und
                     # so die zugehörige stelle im array verändert
